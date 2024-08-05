@@ -17,6 +17,9 @@ services:
       - POSTGRES_DB=orders
 
   client-gateway:
+    depends_on:
+      - nats-server
+      - orders-db
     build: ./client-gateway
     ports:
       - ${GATEWAY_PORT}:3000
@@ -28,6 +31,8 @@ services:
       - PORT=3000
 
   products-microservice:
+    depends_on:
+    - client-gateway
     build: ./products-microservice
     volumes:
       - ./products-microservice/src:/usr/src/app/src
@@ -40,6 +45,7 @@ services:
   orders-microservice:
     depends_on:
       - orders-db
+      - products-microservice
     build: ./orders-microservice
     volumes:
       - ./orders-microservice/src:/usr/src/app/src
