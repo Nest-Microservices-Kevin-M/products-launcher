@@ -32,7 +32,7 @@ services:
 
   products-microservice:
     depends_on:
-    - client-gateway
+      - client-gateway
     build: ./products-microservice
     volumes:
       - ./products-microservice/src:/usr/src/app/src
@@ -54,3 +54,20 @@ services:
       - DATABASE_URL=postgresql://postgres:123456@orders-db:5432/orders?schema=public
       - NATS_SERVERS=nats://nats-server:4222
       - PORT=3002
+
+  payments-microservice:
+    depends_on:
+      - orders-microservice
+    build: ./payments-microservice
+    volumes:
+      - ./payments-microservice/src:/usr/src/app/src
+    command: npm run start:dev
+    environment:
+      - NATS_SERVERS=nats://nats-server:4222
+      - PORT=${PAYMENTS_MICROSERVICE_PORT}
+      - STRIPE_CANCEL_URL=${STRIPE_CANCEL_URL}
+      - STRIPE_ENDPOINT_SECRET=${STRIPE_ENDPOINT_SECRET}
+      - STRIPE_SECRET=${STRIPE_SECRET}
+      - STRIPE_SUCCESS_URL=${STRIPE_SUCCESS_URL}
+    ports:
+      - ${PAYMENTS_MICROSERVICE_PORT}:${PAYMENTS_MICROSERVICE_PORT}
