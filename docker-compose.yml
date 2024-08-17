@@ -30,6 +30,16 @@ services:
       - NATS_SERVERS=nats://nats-server:4222
       - PORT=3000
 
+  auth-microservice:
+    build: ./auth-microservice
+    volumes:
+      - ./auth-microservice/src:/usr/src/app/src
+    command: npm run start:dev
+    environment:
+      - DATABASE_URL=${AUTH_DATABASE_URL}
+      - NATS_SERVERS=nats://nats-server:4222
+      - JWT_SECRET=${JWT_SECRET}
+
   products-microservice:
     depends_on:
       - client-gateway
