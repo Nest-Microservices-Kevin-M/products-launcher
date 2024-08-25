@@ -1,0 +1,61 @@
+services:
+  nats-server:
+    image: nats:2.9.25
+
+  client-gateway:
+    image: gateway-prod
+    build:
+      context: ./client-gateway
+      dockerfile: Dockerfile.prod
+    ports:
+      - ${GATEWAY_PORT}:${GATEWAY_PORT}
+    environment:
+      - NATS_SERVERS=nats://nats-server:4222
+      - PORT=${GATEWAY_PORT}
+
+  auth-microservice:
+    image: auth-microservice
+    build:
+      context: ./auth-microservice
+      dockerfile: Dockerfile.prod
+    environment:
+      - DATABASE_URL=${AUTH_DATABASE_URL}
+      - NATS_SERVERS=nats://nats-server:4222
+      - JWT_SECRET=${JWT_SECRET}
+
+  products-microservice:
+    image: products-microservice
+    build:
+      context: ./products-microservice
+      dockerfile: Dockerfile.prod
+    environment:
+      - DATABASE_URL=file:./dev.db
+      - NATS_SERVERS=nats://nats-server:4222
+      - PORT=3001
+
+  orders-microservice:
+    image: orders-microservice
+    build:
+      context: ./orders-microservice
+      dockerfile: Dockerfile.prod
+      args:
+        - ORDERS_DATABASE_URL=${ORDERS_DATABASE_URL}
+    environment:
+      - DATABASE_URL=${ORDERS_DATABASE_URL}
+      - NATS_SERVERS=nats://nats-server:4222
+      - PORT=3002
+
+  payments-microservice:
+    image: payments-microservice
+    build:
+      context: ./payments-microservice
+      dockerfile: Dockerfile.prod
+    environment:
+      - NATS_SERVERS=nats://nats-server:4222
+      - PORT=${PAYMENTS_MICROSERVICE_PORT}
+      - STRIPE_CANCEL_URL=${STRIPE_CANCEL_URL}
+      - STRIPE_ENDPOINT_SECRET=${STRIPE_ENDPOINT_SECRET}
+      - STRIPE_SECRET=${STRIPE_SECRET}
+      - STRIPE_SUCCESS_URL=${STRIPE_SUCCESS_URL}
+    ports:
+      - ${PAYMENTS_MICROSERVICE_PORT}:${PAYMENTS_MICROSERVICE_PORT}
